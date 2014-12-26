@@ -1,0 +1,36 @@
+
+
+;;Problem Set 1:
+
+;;1.2.1 Write a Scheme procedure that, given a value for x, returns double that value.
+
+(define double (lambda (x) (+ x x)))
+
+;;1.2.2 Write a Scheme procedure that, given a value for x, finds the value of the second order expression 3x^2 + 14x -5.
+
+(define second-order (lambda (x) (+ (- 5)(* 14 x)(* 3(* x x)))))
+
+;;1.2.3 Write a Scheme procedure that, given coefficients a, b, and c of a quadratic equation ax^2 + bx + c, returns the larger of the (real) roots of the equation.
+
+(define quadratic-root
+(lambda (a b c) (/
+(-(- b(sqrt(- (* b b) (* 4 a c)))))
+(* 2 a))))
+
+;;1.2.4 Write a Scheme procedure that, given two arguments, returns the square of the first argument if the first argument is smaller than the second argument, and otherwise returns the square root of the second argument.
+
+(define weird (lambda (a b)
+(cond ((< a b) (* a a))
+((sqrt b)))))
+
+;;1.2.5 Write a Scheme procedure that takes a number as argument, and returns the absolute value of that number.
+
+(define my-abs (lambda (a) (cond ((< a 0) (- a))((= a 0) (+ 0))((> a 0) (+ a)))))
+
+;;1.2.6 Part 1 Write a Scheme procedure that takes two numbers as arguments, and returns the larger of the two.
+
+(define bigger2 (lambda (a b) (cond ((> a b) (+ a))((< a b)(+ b)))))
+
+;;Part 2 Write a Scheme procedure that takes three numbers as arguments, and returns the larger of the three.
+
+(define bigger3 (lambda (a b c) (cond ((> (bigger2 a b) c)(+ (bigger2 a b)))((< (bigger2 a b) c)(+ c)))))
