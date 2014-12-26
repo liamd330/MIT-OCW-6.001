@@ -1,0 +1,5 @@
+;;Problem Set 3
+
+;;3.1.1 Write a procedure (contains? lst elt) that returns #t if elt is contained (at the top level) in lst, and #f otherwise. You should use equal? to compare items.
+
+(define contains? (lambda (lst elt) (if (equal? lst nil) (equal? lst elt)(if (equal? (car lst) elt) (equal? (car lst) elt) (if (< 1 (length lst)) (contains? (cdr lst) elt) (equal? (car lst) elt))))))
