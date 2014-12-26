@@ -1,0 +1,38 @@
+;;Problem Set 2
+
+;;2.1.4 Suppose we want to implement multiplication, but only have the operations of addition, subtraction, and simple predicates available to us. Write a recursive scheme procedure that takes two arguments, a and b, both of which you may assume are positive integers, and returns the product of a and b, using only these operations. 
+
+(define slow-mul (lambda (a b) (helper a b 0)))
+(define helper (lambda (a b product) (cond ((= b 0)(+ product))((helper a (- b 1) (+ product a))))))
+
+;;2.1.5 Using the scheme procedures inc (which adds 1 to its argument), dec (which subtracts 1 from its argument), and zero?, as well our old friend if, implement plus as an iterative procedure. Don't use a helper procedure. 
+
+(define plus (lambda (a b) (cond ((zero? b) a)((plus (inc a) (dec b))))))
+
+;;2.2.1 Write an iterative procedure, (odd? x), that returns #t if its non-negative integer argument x is odd and #f otherwise. Do not use quotient, remainder, /, etc. Do use if or cond.
+
+(define (odd? x) (if (> x 1) (odd? (- x 2)) (helper x)))
+(define (helper x) (= x 1))
+
+;;2.2.2 You have seen how to implement exponentiation using only the operations of multiplication, addition, subtraction, and simple predicates. You should be able to do the same thing for multiplication, using only the operations of addition, subtraction and simple predicates. Write a recursive procedure that takes two arguments, a and b, both of which you may assume are positive integers, and returns the product of a and b, using only these operations. 
+
+(define slow-mul-recurse
+  (lambda (a b) (if (> b 1)(+ a(slow-mul-recurse (+ a) (- b 1)))(+ a))))
+  
+;;2.2.3 You have seen how to implement exponentiation using only the operations of multiplication, addition, subtraction, and simple predicates. You should be able to do the same thing for multiplication, using only the operations of addition, subtraction and simple predicates. Write an iterative procedure that takes two arguments, a and b, both of which you may assume are positive integers, and returns the product of a and b, using only these operations. 
+
+(define slow-mul-iter (lambda (a b) (helper a b 0)))
+(define helper (lambda (a b product) (cond ((= b 0)(+ product))((helper a (- b 1) (+ product a))))))
+
+;;2.2.4 Using the ideas shown in Lecture for cutting the size of a problem in half, write a procedure that takes two arguments, a and b, both of which you may assume are positive integers, and returns the product of a and b, using only the operations of addition, subtraction, multiplication by 2 (called double), and division by 2 (called halve). 
+
+(define fast-mul (lambda (a b) (if (> b 1)(if (even? b)(fast-mul(double a)(halve b))(+ a(fast-mul a (- b 1))))(+ a))))
+
+;;2.2.5 Write a procedure (quick-sum n) that computes the sum of the integers from 1 to n in constant time. 
+
+(define quick-sum (lambda (n) (* n (+ n 1)(/ 2))))
+
+;;2.2.6 Write a purely iterative version of the fast-exp procedure from Lecture.
+
+(define fast-expi (lambda (a b) (helper a b 1))) 
+(define helper (lambda (a b product) (if (> b 0)(helper a (- b 1)(* product a))(+ product))))
