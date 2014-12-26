@@ -33,4 +33,4 @@
 
 ;;Part 2 Write a Scheme procedure that takes three numbers as arguments, and returns the larger of the three.
 
-(define bigger3 (lambda (a b c) (cond ((> (bigger2 a b) c)(+ (bigger2 a b)))((< (bigger2 a b) c)(+ c)))))
+(define bigger3 (lambda (a b c) (cond ((> (bigger2 a b) c)(+ (bigger2 a b)))((< (bigger2 a b) c)(+ c))))) 
