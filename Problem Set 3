@@ -3,3 +3,7 @@
 ;;3.1.1 Write a procedure (contains? lst elt) that returns #t if elt is contained (at the top level) in lst, and #f otherwise. You should use equal? to compare items.
 
 (define contains? (lambda (lst elt) (if (equal? lst nil) (equal? lst elt)(if (equal? (car lst) elt) (equal? (car lst) elt) (if (< 1 (length lst)) (contains? (cdr lst) elt) (equal? (car lst) elt))))))
+
+;;3.1.2 Write a procedure (remove-duplicates lst) that returns a list containing the elements of lst, but with duplicates removed. You may assume that the input is a list of integers.
+
+(define remove-duplicates (lambda (lst) (if (null? lst) nil (if (contains? (cdr lst) (car lst)) (remove-duplicates (cdr lst)) (cons (car lst) (remove-duplicates (cdr lst)))))))
