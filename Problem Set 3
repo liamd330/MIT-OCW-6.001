@@ -7,3 +7,19 @@
 ;;3.1.2 Write a procedure (remove-duplicates lst) that returns a list containing the elements of lst, but with duplicates removed. You may assume that the input is a list of integers.
 
 (define remove-duplicates (lambda (lst) (if (null? lst) nil (if (contains? (cdr lst) (car lst)) (remove-duplicates (cdr lst)) (cons (car lst) (remove-duplicates (cdr lst)))))))
+
+;;3.1.3 Write a procedure (union lst1 lst2) that takes two lists of integers (containing no duplicates) and returns a list containing one instance of every integer that is in either list.
+
+(define union (lambda (lst1 lst2) (remove-duplicates (append lst1 lst2))))
+
+;;3.1.4 Write a procedure (subset? lst1 lst2) that returns #t if the elements of lst1 are a subset of the elements of lst2. You may assume that the elements are all integers, and that no element appears more than once in a set.
+
+(define subset? (lambda (lst1 lst2) (if (null? lst1) #t (if (< 1 (length lst1)) (if (contains? lst2 (car lst1)) (subset? (cdr lst1) lst2)(contains? lst2 (car lst1)))(contains? lst2 (car lst1))))))
+
+;;3.1.5 Write a procedure (intersection lst1 lst2) that takes two lists of integers (containing no duplicates) and returns a list containing one instance of every integer that is in both lists.
+
+(define intersection  (lambda (lst1 lst2) (if (null? lst2) nil (if (contains? lst1 (car lst2))(cons (car lst2) (intersection lst1 (cdr lst2)))(intersection lst1 (cdr lst2)))))) 
+
+;;3.1.6 Write a procedure (every-other lst) that takes a list as argument and returns a new list, containing the 0th, 2nd, 4th, etc. elements of the initial list. These elements should appear in the same order that they did in the original list.
+
+(define every-other (lambda (lst) (if (null? lst) nil (if (= (length lst) 1) lst (cons (list-ref lst 0) (every-other (cdr (cdr lst))))))))
