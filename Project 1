@@ -1,0 +1,69 @@
+Project 1
+
+
+Problem 1
+(define position (lambda (a v u t) (+ (/ (* a (square t)) 2) (* v t) u)))
+(define square (lambda (x) (* x x)))
+
+
+Problem 2
+(define root1 (lambda (a b c) (if (> 0 (- (* b b) (* 4 a c))) #f (/ (- (- b) (sqrt (- (* b b) (* 4 a c)))) (* 2 a)))))
+(define root2 (lambda (a b c) (if (> 0 (- (* b b) (* 4 a c))) #f (/ (+ (- b (sqrt (- (* b b) (* 4 a c))))) (* 2 a)))))
+
+;; When the square root of root1 or root2 was negative, it returned nan.0+; there is no square root of a negative number. Now it returns #f.
+
+
+Problem 3 
+(define time-to-impact (lambda (vertical-velocity elevation) (root1 -4.87 vertical-velocity elevation)))
+(define time-to-height (lambda (vertical-velocity elevation target-elevation) (root1 -4.87 vertical-velocity (- elevation target-elevation))))
+
+
+Problem 4
+(define degree2radian (lambda (deg) (/ (* deg pi) 180.))) 
+(define travel-distance-simple (lambda (elevation velocity angle)(* (root1 -4.87 (* velocity (sin (degree2radian angle))) elevation) (* velocity (cos (degree2radian angle))))))
+
+1 meter elevation/45 m/s/0 degree angle: 20.39 meters traveled
+1/45/45: 208.9 m
+1/45/90: 6.7e^-13
+3.2 feet elevation/ 147.6 ft/s/0 degree angle: 66 feet traveled
+3.2/147.6/45: 684
+3.2/147.6/90: 2.2e^-12
+
+
+Problem 5
+(define find-best-angle (lambda (velocity elevation test n angle) (helper velocity elevation 0 0 0))) 
+(define helper (lambda (velocity elevation test n angle) (if (> n 90) angle (if (> (travel-distance-simple elevation velocity n) test) (helper velocity elevation (travel-distance-simple elevation velocity n) n n) (helper velocity elevation test (+ 1 n) angle)))))
+
+;;45 degrees is almost always the best angle to hit the ball at.
+
+
+Problem 6
+;;Steps:
+1.	Calculate where ball will be in 0.01 seconds with current estimates
+2.	Adjust x and y based on this
+3.	Adjust u and v, accounting for drag and gravity
+4.	Repeat step 1 until (= y 0)
+
+(define x (lambda (u) (* u t)))
+(define y (lambda (v) )(* v t))
+(define v (lambda (velocity angle elevation) (* velocity (sin (degree2radian angle)) elevation)))
+(define u (lambda (velocity angle) (* velocity (cos (degree2radian angle)))))
+(define t 0.01)
+(define du/dt (lambda (u v) (* -0.0015467 t u (sqrt (+ (square u) (square v))))))
+(define dv/dt (lambda (u v) (* 0.00750792 t v (sqrt (+ (square u) (square v))))))
+
+(define integrate (lambda (velocity angle elevation) (if (= (y velocity angle elevation) 0) (x velocity angle) (integrate (y (dv/dt velocity angle velocity angle elevation) angle elevation) (x (du/dt velocity angle velocity angle elevation))))))
+;;Really not sure how to get integrate to work correctly, so code doesn’t work. 
+
+
+Problem 7
+;;Same issue; couldn’t get integrate to work.
+
+
+Problem 8
+;;Simplified without integrate.
+(define bounce (lambda (elevation velocity angle hop) (if (= hop -1) 0 (+ (travel-distance-simple elevation velocity angle) (bounce 0 (* 0.5 velocity) angle (- hop 1))))))
+
+
+Problem 9
+;;Really need to figure out how to get integrate to work. Need to finish this, 6, 7 and re-do 8.
