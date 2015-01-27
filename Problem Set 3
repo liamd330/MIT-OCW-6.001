@@ -32,3 +32,16 @@
 
 (define count-true (lambda (pred lower upper)(length (helper pred lower upper))))
 (define helper (lambda (pred lower upper) (if (< upper lower) nil (if (pred upper)  (cons upper (helper pred lower (- upper 1))) (helper pred lower (- upper 1))))))
+
+;;3.2.4 Write a recursive procedure, (accumulate-interval op init lower upper), of type (number,number->number),number,number,number->number that combines all of the elements in the interval [lower upper] (inclusive) by successive applications of op, starting with value init.
+
+(define accumulate-interval (lambda (op init lower upper) (if (< upper lower) init (op init upper (accumulate-interval op init lower (- upper 1))))))
+
+;;3.2.6 Write a procedure (repeatedly-apply p n), of type (A->A),number->(A->A), that returns a procedure that takes a single argument and applies p to it n times.
+
+(define repeatedly-apply
+  (lambda (p n) (lambda (x) (if (= 1 n) (p x) ((repeatedly-apply p (- n 1)) (p x))))))
+  
+;;3.2.7 Write your own higher-order procedure, (curry p), of type (A,B->C)->(A->(B->C)), that takes a binary procedure and curries it.
+
+(define curry (lambda (p) (lambda (x) (lambda (y) (p x y)))))
