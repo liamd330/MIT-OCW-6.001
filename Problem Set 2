@@ -1,4 +1,4 @@
-;;Problem Set 2
+;;Problem Set 2:
 
 ;;2.1.4 Suppose we want to implement multiplication, but only have the operations of addition, subtraction, and simple predicates available to us. Write a recursive scheme procedure that takes two arguments, a and b, both of which you may assume are positive integers, and returns the product of a and b, using only these operations. 
 
