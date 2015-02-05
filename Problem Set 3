@@ -1,4 +1,4 @@
-;;Problem Set 3
+;;Problem Set 3:
 
 ;;3.1.1 Write a procedure (contains? lst elt) that returns #t if elt is contained (at the top level) in lst, and #f otherwise. You should use equal? to compare items.
 
