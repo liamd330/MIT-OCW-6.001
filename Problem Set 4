@@ -1,0 +1,27 @@
+;;4.2.1 Write a procedure (make-increasing-list n start) that returns a list of n integers, starting at start, and increasing by 1.
+
+(define make-increasing-list (lambda (n start) (if (= n 0) nil (cons start (make-increasing-list (- n 1) (+ start 1))))))
+
+;;4.2.2. Write a procedure (make-increasing-matrix rows cols start) that returns a matrix with rows rows and cols columns. The matrix will be represented as a list of lists; there will be rows lists, each of which contains cols integers. The first integer value will be start, and they will increase by 1, going across each row, then continuing with the beginning of the next row.
+
+(define make-increasing-matrix (lambda (rows cols start) (if (= 0 rows) nil (cons (make-increasing-list cols start) (make-increasing-matrix (- rows 1) cols (+ start cols))))))
+  
+;;4.2.3 Part I Write a procedure (transpose m) that takes a matrix, represented as a list of lists, and returns the transpose of the matrix.
+
+(define transpose (lambda (m) (if (null? m) nil (if (null? (car m)) nil (cons (map car m)(transpose (map cdr m)))))))
+
+;;Part II Write a procedure (make-column-increasing-matrix rows cols start) that returns a list of rows lists of cols integers, starting at start, and increasing by 1 as you go down the columns.
+
+(define make-column-increasing-matrix (lambda (rows cols start) (transpose (make-increasing-matrix cols rows start))))
+
+;;4.2.4 Part I Write a procedure generate-interval that takes as input two integers a and b, and generates a list of all the integers from a to b (that is from a up to but not including b).
+
+(define (generate-interval a b) (if (> a b) nil (if (= a b) nil (cons a (generate-interval (+ 1 a) b)))))
+
+;;Part II Write a procedure remove-divisible that takes as input a list of integers, and some integer a, and generates a new list that keeps only those elements of the first list that are not divisible by a.
+
+(define (remove-divisible lst value) (filter (lambda (x) (> (remainder x value) 0)) lst))
+
+;;Part III Write a procedure sieve that takes a list as input, and returns a list whose first element is the first element of the original list; whose second element is the first element of the original list not divisible by the first element; whose third element is the first element of the original list not divisible by either these two elements, and so on.
+
+(define (sieve lst) (if (null? lst) nil (cons (car lst) (sieve (remove-divisible (cdr lst) (car lst))))))
