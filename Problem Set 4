@@ -27,3 +27,106 @@
 ;;Part III Write a procedure sieve that takes a list as input, and returns a list whose first element is the first element of the original list; whose second element is the first element of the original list not divisible by the first element; whose third element is the first element of the original list not divisible by either these two elements, and so on.
 
 (define (sieve lst) (if (null? lst) nil (cons (car lst) (sieve (remove-divisible (cdr lst) (car lst))))))
+
+;;4.2.5 Part I Write a procedure remove-it that takes as input a list and a number, and returns a list of every element not equal to that number, using map, filter and(or) fold-right. 
+
+(define (remove-it elt lst) (filter (lambda (x) (or (> x elt)(< x elt))) lst))
+
+;;Part II To create our sorting procedure, we need to simply find the best element, and add it to the front of whatever list we get by sorting the remaining elements. For simplicity, let's write a procedure to sort integers in decreasing order. Using some combination of map, filter and fold-right complete the definition below to create a procedure that sorts a list using the ideas described. You may assume that only positive integers are present in the input list. 
+
+(define (sortem lst) (if (null? lst) '() (cons (apply max lst) (sortem (filter (lambda (x) (< x (apply max lst))) lst)))))
+
+;;Part III We can generalize the sorting procedure from the last part to allow for arbitrary comparisons (instead of just finding the largest element). To do this, we need to add a parameter to our procedure that specifies how we compare two elements, and a parameter that specifies a basecase element against which to compare things. For example, to sort in decreasing order, we might use max and -1 (since we know we have only positive integers). Generalize your solution to handle this.
+
+(define (sortem-gen lst test basecase)
+  (if (null? lst) nil (cons (apply test lst) (sortem-gen (filter (lambda (x) (or (< x (apply test lst))(> x (apply test lst)))) lst) test basecase))))
+  
+;;4.3.2 Write a procedure (memq word text), that takes a word (represented as a symbol) and a list of words, and returns the remainder of the list starting at the first occurence of the word. 
+
+(define memq (lambda (word text) (if (null? text) #f (if (eq? word (car text)) text (memq word (cdr text))))))
+
+;;4.3.3 Part I Write a procedure (lookup word dictionary), that takes a word (represented as a symbol) and a dictionary, represented as a list of two-word lists, and returns the output word associated with the input word. 
+
+(define lookup
+  (lambda (word dictionary) (if (null? dictionary) #f (if (eq? (caar dictionary) word) (car (reverse (car dictionary))) (lookup word (cdr dictionary))))))
+
+;;Part II Write a procedure (translate sentence dictionary), that takes a sentence (represented as a list of symbols) and a dictionary, represented as above, and returns a new list of symbols, each of which is the translation according to the dictionary of a word in the original sentence.
+
+(define translate
+  (lambda (sentence dictionary) (map (lambda (x) (lookup x dictionary)) sentence)))
+
+;;4.3.4 Part I Write a procedure increment-word-count-in-histogram, of type symbol,histogram->histogram, that takes a word and a histogram that already has an entry for that word, and returns a new histogram with the count for that word increased by 1.
+
+(define increment-word-count-in-histogram        
+(lambda (word histogram)(append (filter (lambda (x) (not (eq? (car x) word))) histogram)(list (list word (+ 1 (list-ref (car (filter (lambda (x) (eq? (car x) word)) histogram)) 1)))))))
+
+;;Part II Write a procedure add-words-to-histogram, of type List < symbol >, histogram -> histogram, that takes a list of words and a histogram, and adds the words to the histogram. There may or may not already be entries for the words in the histogram.
+
+(define add-words-to-histogram
+  (lambda (words histogram) (if (null? words) histogram (if (not (in-histogram? (car words) histogram)) ((add-new-word-to-histogram (car words) histogram)(add-words-to-histogram (cdr words) histogram)) ((increment-word-count-in-histogram (car words) histogram)(add-words-to-histogram (cdr words) histogram))))))
+  
+;; (Code above doesn't work; program will add one instance to the histogram but won't recur).
+
+;;Part III Write a procedure times-occuring, of type histogram, symbol -> number, that takes a histogram and a word, and returns the number of times the word was counted in the histogram. If the word does not appear in the histogram, return the value 0. 
+
+(define times-occuring
+  (lambda (histogram word) (if (not (in-histogram? word histogram)) 0 (if (eq? word (caar histogram)) (car (reverse (car histogram))) (times-occuring (cdr histogram) word)))))
+
+;;4.3.5 Part I Write a procedure (match pattern text), that takes a list of symbols, and a second list of symbols, and returns the number of times that exact sequence of symbols of the pattern appears in the text. 
+
+(define match (lambda (pattern text) (helper pattern text 0)))
+(define helper (lambda (pattern text iteration)
+    (if (null? text) iteration
+          (if (equal? (list-head text (length pattern)) pattern)
+               (helper pattern (cdr text) (+ 1 iteration))
+               (helper pattern (cdr text) iteration)))))
+               
+;; Part II Write a procedure match*, with a similar behvior to match, except that if a symbol in the pattern is the special symbol *, this can match to ANY symbol. 
+
+(define match* (lambda (pattern text)(if (contains? pattern '*)(helper4 pattern text 0) (match pattern text))))
+
+
+(define helper4 (lambda (pattern text iteration)
+    (if (> (length pattern)(length text)) iteration
+          (if (equal? (list-head (text-replace pattern text) (length pattern)) pattern)
+               (helper4 pattern (cdr text) (+ 1 iteration))
+               (helper4 pattern (cdr text) iteration)))))
+
+
+(define text-replace (lambda (pattern text)(symbol-replace '* text (symbol-location '* pattern))))
+
+
+(define symbol-location (lambda (symbol text) (helper2 symbol text 0)))
+
+(define helper2 (lambda (symbol text position) (if (null? text) #f (if (equal? (car text) symbol) position (helper2 symbol (cdr text) (+ 1 position))))))
+
+
+
+(define symbol-replace (lambda (symbol text position) (if (eq? position 0) (cons symbol (cdr text)) (cons (car text)(symbol-replace symbol (cdr text) (- position 1))))))
+
+
+
+(define match (lambda (pattern text) (helper pattern text 0)))
+
+(define helper (lambda (pattern text iteration)
+    (if (null? text) iteration
+          (if (equal? (list-head text (length pattern)) pattern)
+               (helper pattern (cdr text) (+ 1 iteration))
+               (helper pattern (cdr text) iteration)))))
+
+(define contains? (lambda (lst elt)
+    (cond ((equal? lst nil) nil)
+          ((equal? (car lst) elt) #t)
+          ((< 1 (length lst))(contains? (cdr lst) elt))
+          (else #f))))
+
+
+
+;;Had trouble with base case; was trying to use ((null? text) iteration) instead of (> (length pattern) (length text))
+
+;; Explanation of code: (symbol-location symbol text) locates the position of a symbol in a given text, 
+;; (symbol-replace symbol text position) replaces whatever is in a specific position with a given symbol,
+;; (text-replace pattern text) is more specific for this program, finding the location of the '* symbol in
+;; a pattern and replacing it in the same position in the given text. (contains? lst elt) is  
+;; self-explanatory and (match* pattern text) compares the pattern (with '*, otherwise it just goes to 
+;; (match pattern text)) to the text, modified to contain '* in whatever spot the pattern contained it.
