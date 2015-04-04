@@ -1,6 +1,6 @@
-;;SICP 6.001 Project 2
+SICP 6.001 Project 2
 
-;;Problem 1 
+Problem 1 
 ;;Problem: Finish code (write extract entry)
 ;;Slightly modified to work on REPL.it interpreter (Scheme random doesn’t ;;work on it)
 
@@ -103,7 +103,7 @@
 
 
 
-;;Problem 2
+Problem 2
 
 
    (play-loop PATSY NASTY)
@@ -196,7 +196,7 @@ Player 2 Score:  9
 ;;PATSY vs. NASTY obviously causes the highest and lowest scoring game, NASTY winning by 515 points. NASTY wins or ties every time but never ends up with a high-scoring game except when playing PATSY. EYE-FOR-EYE and EGALITARIAN do pretty well for themselves, making decently high-scoring games and adapting to when NASTY decides to screw them over. 
 
 
-;;Problem 3
+Problem 3
 
 ;;EGALITARIAN uses an O(n) order of growth whereas the rest of the strategies are constant O(1). SPASTIC using a modified random to work on REPL.it uses O(n^2) growth, needing to iterate for both random and randint, causing it to crash if given too many iterations in the limit. Alyssa P. Hacker’s fix puts EGALITARIAN in O(1), constant time.
 
@@ -209,7 +209,7 @@ Player 2 Score:  9
 
 
 
-;;Problem 4
+Problem 4
 
 ;; Original EYE-FOR-EYE 
 
