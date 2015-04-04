@@ -1,0 +1,747 @@
+;;SICP 6.001 Project 2
+
+;;Problem 1 
+;;Problem: Finish code (write extract entry)
+;;Slightly modified to work on REPL.it interpreter (Scheme random doesn’t ;;work on it)
+
+(define (randint . args)
+  (cond ((= (length args) 1)
+          (floor (* (random) (car args))))
+        ((= (length args) 2)
+          (+ (car args) (floor (* (random) (- (cadr args) (car args))))))
+        (else (error 'randint "usage: (randint [lo] hi)"))))
+
+
+
+(define (play-loop strat0 strat1)
+  (define (play-loop-iter strat0 strat1 count history0 history1 limit)
+    (cond ((= count limit) (print-out-results history0 history1 limit))
+	  (else (let ((result0 (strat0 history0 history1))
+		      (result1 (strat1 history1 history0)))
+		  (play-loop-iter strat0 strat1 (+ count 1)
+				  (extend-history result0 history0)
+				  (extend-history result1 history1)
+				  limit)))))
+  (play-loop-iter strat0 strat1 0 the-empty-history the-empty-history
+		  (+ 90 (randint 21))))
+
+(define random
+  (let ((a 69069) (c 1) (m (expt 2 32)) (seed 19380110))
+    (lambda new-seed
+      (if (pair? new-seed)
+          (set! seed (car new-seed))
+          (set! seed (modulo (+ (* seed a) c) m)))
+      (/ seed m))))
+
+(define modulo (lambda (a b) (if (> 0 a) (+ a b) (modulo (- a b) b))))
+
+(define extract-entry (lambda (game association-list) 
+    (cond ((equal? game '("c" "c")) (car association-list))
+          ((equal? game '("c" "d")) (cadr association-list))
+          ((equal? game '("d" "c")) (caddr association-list))
+          ((equal? game '("d" "d")) (cadddr association-list)))))
+
+
+;;edited print-out-results to give iterated score, not average
+
+(define (print-out-results history0 history1 number-of-games)
+  (let ((scores (get-scores history0 history1)))
+    (newline)
+    (display "Player 1 Score:  ")
+    (display (car scores))
+    (newline)
+    (display "Player 2 Score:  ")
+    (display (cadr scores))
+    (newline)))
+
+
+(define (SPASTIC my-history other-history)
+  (if (= (randint 2) 0)
+      "c"
+      "d"))
+
+
+
+(define (take-no-prisoners my-history other-history)
+    (define contains? (lambda (lst elt)
+    (cond ((equal? lst nil) nil)
+          ((equal? (car lst) elt) #t)
+          ((< 1 (length lst))(contains? (cdr lst) elt))
+          (else #f))))
+    (if (contains? other-history "d") "d" "c")
+    
+    
+(define (FEINT my-history other-history)
+    (define contains? (lambda (lst elt)
+    (cond ((equal? lst nil) nil)
+          ((equal? (car lst) elt) #t)
+          ((< 1 (length lst))(contains? (cdr lst) elt))
+          (else #f))))
+    (if (empty-history? other-history) "d" "c"))
+    
+    
+(define (trust-test my-history other-history)
+    (define contains? (lambda (lst elt)
+    (cond ((equal? lst nil) nil)
+          ((equal? (car lst) elt) #t)
+          ((< 1 (length lst))(contains? (cdr lst) elt))
+          (else #f))))
+    (if (empty-history? other-history) "c" (if (contains? other-history "d") "d" "c")))
+
+
+
+;; play-loop-iter runs until it hits the random limit, consing up a massive history list. The base case forces it to run print-out-results once it hits the limit and takes the scores from get-scores. Get-scores cdrs through the history list and sends them to get-player-points which list-refs them based on whether they are games 0 or 1. Get-point-list takes the cadr of extract-entry, which I have to write, which takes parameters game and *game-association-list*
+
+;;Problem now: the program only runs one game, does not iterate. 
+
+;;Problem… fixed? Game was supposed to run like that? Edited print-out-results to show undivided score.
+
+
+
+
+
+
+
+
+;;Problem 2
+
+
+   (play-loop PATSY NASTY)
+
+Player 1 Score:  0
+Player 2 Score:  515
+
+   (play-loop PATSY EYE-FOR-EYE)
+
+Player 1 Score:  276
+Player 2 Score:  276
+
+   (play-loop PATSY EGALITARIAN)
+
+Player 1 Score:  315
+Player 2 Score:  315
+
+   (play-loop PATSY PATSY)
+
+Player 1 Score:  297
+Player 2 Score:  297
+
+   (play-loop NASTY EYE-FOR-EYE)
+
+Player 1 Score:  107
+Player 2 Score:  102
+
+   
+   (play-loop NASTY EGALITARIAN)
+
+Player 1 Score:  100
+Player 2 Score:  95
+
+   (play-loop NASTY NASTY)
+
+Player 1 Score:  90
+Player 2 Score:  90
+   
+   (play-loop EYE-FOR-EYE EGALITARIAN)
+
+Player 1 Score:  309
+Player 2 Score:  309
+
+   (play-loop EYE-FOR-EYE EYE-FOR-EYE)
+
+Player 1 Score:  294
+Player 2 Score:  294
+
+   (play-loop EGALITARIAN EGALITARIAN)
+
+Player 1 Score:  297
+Player 2 Score:  297
+
+
+
+
+;;SPASTIC is modified to play 5 games +/- 1 to make REPL.it not crash. This 
+is because SPASTIC on my modified version to run without the normal Scheme
+random function is O(n^2)
+
+
+(play-loop SPASTIC SPASTIC)
+
+Player 1 Score:  16
+Player 2 Score:  6
+
+(play-loop SPASTIC NASTY)
+
+Player 1 Score:  3
+Player 2 Score:  18
+
+(play-loop SPASTIC PATSY)
+
+Player 1 Score:  17
+Player 2 Score:  12
+
+(play-loop SPASTIC EYE-FOR-EYE)
+
+Player 1 Score:  9
+Player 2 Score:  9
+
+(play-loop SPASTIC EGALITARIAN)
+
+Player 1 Score:  19
+Player 2 Score:  9
+
+
+
+
+;;PATSY vs. NASTY obviously causes the highest and lowest scoring game, NASTY winning by 515 points. NASTY wins or ties every time but never ends up with a high-scoring game except when playing PATSY. EYE-FOR-EYE and EGALITARIAN do pretty well for themselves, making decently high-scoring games and adapting to when NASTY decides to screw them over. 
+
+
+;;Problem 3
+
+;;EGALITARIAN uses an O(n) order of growth whereas the rest of the strategies are constant O(1). SPASTIC using a modified random to work on REPL.it uses O(n^2) growth, needing to iterate for both random and randint, causing it to crash if given too many iterations in the limit. Alyssa P. Hacker’s fix puts EGALITARIAN in O(1), constant time.
+
+
+
+
+
+
+
+
+
+
+;;Problem 4
+
+;; Original EYE-FOR-EYE 
+
+(define (EYE-FOR-EYE my-history other-history)
+  (if (empty-history? my-history)
+      "c"
+      (most-recent-play other-history)))
+
+(define (EYE-FOR-TWO-EYES my-history other-history) 
+  (if (or (empty-history? my-history) (empty-history? (cdr my-history))) "c"  
+  (if (and (equal? (car other-history) "d") (equal? (cadr other-history) "d")) "d" "c")))
+
+
+;;EYE-FOR-TWO-EYES tends to do worse than EYE-FOR-EYE because it’s more cooperative, hence the defectors can get away with more. The only strategy that defects with any consistency is NASTY and it loses more on that. Playing against SPASTIC it does worse than EYE-FOR-EYE which ties with SPASTIC. 
+
+(play-loop EYE-FOR-TWO-EYES SPASTIC)
+
+Player 1 Score:  14
+Player 2 Score:  19
+
+(play-loop EYE-FOR-TWO-EYES EYE-FOR-EYE)
+
+Player 1 Score:  315
+Player 2 Score:  315
+
+(play-loop EYE-FOR-TWO-EYES NASTY)
+
+Player 1 Score:  90
+Player 2 Score:  100
+
+
+(play-loop EYE-FOR-TWO-EYES EGALITARIAN)
+
+Player 1 Score:  309
+Player 2 Score:  309
+
+(play-loop EYE-FOR-TWO-EYES PATSY)
+
+Player 1 Score:  276
+Player 2 Score:  276
+
+(play-loop EYE-FOR-TWO-EYES EYE-FOR-TWO-EYES)
+
+Player 1 Score:  315
+Player 2 Score:  315
+
+
+
+
+
+
+
+Problem 5 
+
+(define (make-eye-for-n-eyes n)
+ (define (EYE-FOR-N-EYES my-history other-history)
+  (define (counter-loop counter n hist)
+    (cond ((empty-history? hist) (if (> counter (- n 1)) "d" "c"))
+          ((string=? (most-recent-play hist) "c")
+          (counter-loop 0 n (rest-of-plays hist)))
+          (else
+          (counter-loop (+ 1 counter) n (rest-of-plays hist)))))
+        (counter-loop 0 n other-history))
+        EYE-FOR-N-EYES)
+
+(play-loop (make-eye-for-n-eyes 3) NASTY)
+
+Player 1 Score:  93
+Player 2 Score:  108
+   (play-loop (make-eye-for-n-eyes 10) NASTY)
+
+Player 1 Score:  88
+Player 2 Score:  138
+   (play-loop (make-eye-for-n-eyes 5) EGALITARIAN)
+
+Player 1 Score:  309
+Player 2 Score:  309
+   (play-loop (make-eye-for-n-eyes 3) PATSY)
+
+Player 1 Score:  297
+Player 2 Score:  297
+   (play-loop (make-eye-for-n-eyes 0) PATSY)
+
+Player 1 Score:  450
+Player 2 Score:  0
+   (play-loop (make-eye-for-n-eyes 25) NASTY)
+
+Player 1 Score:  73
+Player 2 Score:  198
+
+;;The more “eyes-for-eyes” (make-eye-for-n-eyes n) takes, the better it does in cooperation with cooperative programs, and the worse it does against NASTY.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Problem 6
+
+(define (make-rotating-strategy strat0 strat1 freq0 freq1)
+  (define (strat-loop strat00 strat11 freq00 freq11)
+    (cond ((> freq00 0) strat00)
+          ((> freq11 0) strat11)
+          ((and (= freq00 0) (= freq11 0)) (make-rotating-strategy strat0 strat1 freq0 freq1))
+          (else (if (> freq00 0) (strat-loop strat00 strat11 (- freq00 1) freq11)
+                                 (strat-loop strat00 strat11 freq00 (- freq11 1))))))
+  (strat-loop strat0 strat1 freq0 freq1))
+
+;;Problem: first cond parameter is always fulfilled. Equivalent to just entering strat0.
+
+
+(define (make-rotating-strategy strat0 strat1 freq0 freq1)
+    (define (strategy0)
+      strat0)
+    (define (strategy1)
+      strat1)
+    (cond ((> freq0 0) strategy0) 
+          ((< freq0 0) strategy1)
+          ((and (= freq0 0)(= freq1 0)) (make-rotating-strategy strat0 strat1 freq0 freq1))))
+          
+          
+
+(define (make-rotating-strategy strat0 strat1 freq0 freq1)
+   (if (> freq0 0) strat0 strat1)
+    (define loop (s0 s1 f0 f1)
+       (cond ((and (= f0 0) (= f1 0)) (make-rotating-strategy strat0 strat1 freq0 freq1))
+             ((> freq0 0) (make-rotating-strategy strat0 strat0 (- freq0 1) freq1))
+             ((< freq0 0) (make-rotating-strategy strat0 strat1 freq0 (- freq1 1)))))
+   (loop strat0 strat1 freq0 freq1))
+    
+    
+(define (decider s0 s1 f0 f1)
+   (if (> freq0 0) strat0 strat1))
+   
+   
+(define (make-rotating-strategy strat0 strat1 freq0 freq1)
+     (define (decision s0 s1 f0 f1)
+        (if (> f0 0) strat0 strat1))
+    (decision strat0 strat1 freq0 freq1))
+
+
+
+
+
+
+
+(define (make-rotating-strategy strat0 strat1 freq0 freq1 switch)
+
+  (define (flip-switch strat0 strat1 freq0 freq1 switch) 
+    (if (= switch 0) (gate strat0 strat1 freq0 freq1 1) (gate strat0 strat1 freq0 freq1 0)))
+  
+  (define (gate strat0 strat1 freq0 freq1 switch)
+  
+     (define (strat-pick s0 s1 f0 f1)
+        (cond ((> f0 0) s0)
+              ((> f1 0) s1)
+              (else s1)))
+              
+    (cond ((= switch 0) (strat-pick strat0 strat1 freq0 freq1))
+          ((> freq0 0) (make-rotating-strategy strat0 strat1 (- freq0 1) freq1 1))
+          ((> freq1 0) (make-rotating-strategy strat0 strat1 freq0 (- freq1 1) 1))
+          (else (make-rotating-strategy strat0 strat1 freq0 freq1 1))))
+                                
+    (flip-switch strat0 strat1 freq0 freq1 switch))
+
+
+
+
+
+
+  (define (flip-switch freq0 freq1 switch) 
+    (if (= switch 0) (gate freq0 freq1 1) (gate freq0 freq1 0)))
+    
+(define (gate freq0 freq1 switch) 
+   (cond ((= switch 0) '(= switch 0))
+         ((> freq0 0) (flip-switch (- freq0 1) freq1 0))
+         ((> freq1 0) (flip-switch freq0 (- freq1 1) 0))
+         ((and (= freq0 0) (= freq1 0)) '(good))))
+
+
+;;Because (make-rotating-strategy) takes the same parameter for switch every time it never subtracts and runs s0 every time
+
+;;Cannot figure this or problem 7 out. Left attempted code in anyway. 
+
+
+
+Problem 8
+
+;;Not running on REPL.it. I suspect this is because it needs random, randint, and another random function for gentle [though I could be wrong]. Doesn’t work even if I set the number of games to (+ 5 (randint 2)). Here’s the code I used anyway.
+
+
+(define (gentle strat gentleness-factor)
+  (define (helper my-history other-history) 
+    (cond ((> gentleness-factor (random)) "c")
+          (else (strat))))
+  helper)
+
+Problem 9
+
+
+;;Three-player prisoner’s dilemma code
+
+(define (play-loop strat0 strat1 strat2)
+  (define (play-loop-iter strat0 strat1 strat2 count history0 history1 history2 limit)
+    (cond ((= count limit) (print-out-results history0 history1 history2 limit))
+	  (else (let ((result0 (strat0 history0 history1 history2))
+		          (result1 (strat1 history1 history0 history2))
+		          (result2 (strat2 history2 history0 history1)))
+		  (play-loop-iter strat0 strat1 strat2 (+ count 1)
+				  (extend-history result0 history0)
+				  (extend-history result1 history1)
+				  (extend-history result2 history2)
+				  limit)))))
+  (play-loop-iter strat0 strat1 strat2 0 the-empty-history the-empty-history the-empty-history
+		  (+ 90 (randint 21))))
+
+
+
+(define (print-out-results history0 history1 history2 number-of-games)
+  (let ((scores (get-scores history0 history1 history2)))
+    (newline)
+    (display "Player 1 Score:  ")
+    (display (car scores))
+    (newline)
+    (display "Player 2 Score:  ")
+    (display (cadr scores))
+    (newline)
+    (display "Player 3 Score: ")
+    (display (caddr scores))))
+
+(define (get-scores history0 history1 history2)
+  (define (get-scores-helper history0 history1 history2 score0 score1 score2)
+    (cond ((empty-history? history0)
+	   (list score0 score1 score2))
+	  (else (let ((game (make-play (most-recent-play history0)
+				       (most-recent-play history1)
+				       (most-recent-play history2))))
+		  (get-scores-helper (rest-of-plays history0)
+				     (rest-of-plays history1)
+				     (rest-of-plays history2)
+				     (+ (get-player-points 0 game) score0)
+				     (+ (get-player-points 1 game) score1)
+				     (+ (get-player-points 2 game) score2))))))
+  (get-scores-helper history0 history1 history2 0 0 0))
+
+(define (get-player-points num game)
+  (list-ref (get-point-list game) num))
+
+ (define (get-point-list game)
+  (cadr (extract-entry game association-list)))
+
+
+(define make-play list)
+
+(define the-empty-history '())
+
+(define extend-history cons)
+(define empty-history? null?)
+
+(define most-recent-play car)
+(define rest-of-plays cdr)
+
+
+
+(define (NASTY my-history other-history third-history)
+  "d")
+
+(define (PATSY my-history other-history third-history)
+  "c")
+
+(define (SPASTIC my-history other-history)
+  (if (= (randint 2) 0)
+      "c"
+      "d"))
+
+(define extract-entry (lambda (game association-list)
+    (cond ((equal? game '("c" "c" "c")) (car association-list))
+          ((equal? game '("c" "c" "d")) (cadr association-list))
+          ((equal? game '("c" "d" "c")) (caddr association-list))
+          ((equal? game '("d" "c" "c")) (cadddr association-list))
+          ((equal? game '("c" "d" "d")) (list-ref association-list 4))
+          ((equal? game '("d" "c" "d")) (list-ref association-list 5))
+          ((equal? game '("d" "d" "c")) (list-ref association-list 6))
+          ((equal? game '("d" "d" "d")) (list-ref association-list 7)))))
+
+
+
+(define association-list
+  (list (list (list "c" "c" "c") (list 4 4 4))
+        (list (list "c" "c" "d") (list 2 2 5))
+        (list (list "c" "d" "c") (list 2 5 2))
+        (list (list "d" "c" "c") (list 5 2 2))
+        (list (list "c" "d" "d") (list 0 3 3))
+        (list (list "d" "c" "d") (list 3 0 3))
+        (list (list "d" "d" "c") (list 3 3 0))
+        (list (list "d" "d" "d") (list 1 1 1))))
+
+
+
+;;Problem 10
+
+(define (NASTY-3 my-history other-history third-history)
+  "d")
+
+(define (PATSY-3 my-history other-history third-history)
+  "c")
+
+(define (SPASTIC-3 my-history other-history third-history)
+  (if (= (randint 2) 0)
+      "c"
+      "d"))
+
+
+;;Spastic-3 still causes crash on REPL.it
+
+
+(define (tough-EYE-FOR-EYE my-history other-history third-history)
+  (cond ((empty-history? my-history) "c")
+        ((or (equal? (most-recent-play other-history) "d") 
+             (equal? (most-recent-play third-history) "d")) "d")
+        (else "c")))
+        
+        
+(define (soft-EYE-FOR-EYE my-history other-history third-history)
+  (cond ((empty-history? my-history) "c")
+        ((and (equal? (most-recent-play other-history) "d") 
+              (equal? (most-recent-play third-history) "d")) "d")
+        (else "c")))
+
+
+;;Both codes work exactly as you would expect them to:
+
+
+(play-loop tough-EYE-FOR-EYE NASTY PATSY)
+
+Player 1 Score:  296
+Player 2 Score:  299
+Player 3 Score: 2 
+
+(play-loop soft-EYE-FOR-EYE NASTY PATSY)
+
+Player 1 Score:  180
+Player 2 Score:  450
+Player 3 Score: 180   
+
+(play-loop soft-EYE-FOR-EYE NASTY NASTY)
+
+Player 1 Score:  97
+Player 2 Score:  100
+Player 3 Score: 100
+
+
+
+
+
+Problem 11
+
+(define (make-combined-strategy strat0 strat1 combiner)
+  (combiner strat0 strat1))
+
+;;This code theoretically should work. All attempts to make it work with a specific combiner parameter failed –-at the combiner step--, but that was a failure on the part of the combiner parameter and not -this- code.
+
+ 
+Problem 12
+
+(define (history-tracker hist0 hist1 hist2 cc-list dd-list cd-list)
+    (cond ((null? hist1) (make-history-summary cc-list dd-list cd-list))
+          ((and (equal? (most-recent-play hist0) "d") 
+                (equal? (most-recent-play hist2) "d")) 
+                  (history-tracker (cdr hist0) (cdr hist1) (cdr hist2) cc-list 
+                                   (cons (car hist1) dd-list) cd-list))
+          ((and (equal? (most-recent-play hist0) "d") 
+                (equal? (most-recent-play hist2) "c")) 
+                  (history-tracker (cdr hist0) (cdr hist1) (cdr hist2) cc-list 
+                                   dd-list (cons (car hist1) cd-list)))
+          ((and (equal? (most-recent-play hist0) "c") 
+                (equal? (most-recent-play hist2) "d"))
+                  (history-tracker (cdr hist0) (cdr hist1) (cdr hist2) cc-list 
+                                   dd-list (cons (car hist1) cd-list)))
+          ((and (equal? (most-recent-play hist0) "c") 
+                (equal? (most-recent-play hist2) "c"))
+                  (history-tracker (cdr hist0) (cdr hist1) (cdr hist2) (cons (car hist1) cc-list)
+                                   dd-list cd-list))))
+
+
+(define (make-history-summary cc-list dd-list cd-list)
+  (define (CCList c d # lst)
+
+    (cond ((null? lst) (list c d #))
+          ((equal? (most-recent-play lst) "c") (CCList (+ 1 c) d (+ 1 #) (cdr lst)))
+          ((equal? (most-recent-play lst) "d") (CCList c (+ 1 d) (+ 1 #) (cdr lst)))))
+   
+  (define (DDList c d # lst)
+     (cond ((null? lst) (list c d #))
+           ((equal? (most-recent-play lst) "c") (DDList (+ 1 c) d (+ 1 #) (cdr lst)))
+           ((equal? (most-recent-play lst) "d") (DDList c (+ 1 d) (+ 1 #) (cdr lst)))))
+  
+    (define (CDList c d # lst)
+      (cond ((null? lst) (list c d #))
+            ((equal? (most-recent-play lst) "c") (CDList (+ 1 c) d (+ 1 #) (cdr lst)))
+            ((equal? (most-recent-play lst) "d") (CDList c (+ 1 d) (+ 1 #) (cdr lst)))))
+  
+ (list (CCList 0 0 0 cc-list) (DDList 0 0 0 dd-list) (CDList 0 0 0 cd-list)))
+
+
+
+
+Problem 13
+
+
+(define (get-probability-of-c summary) 
+  (list (/ (caar summary) (caddar summary)) 
+        (/ (caadr summary) (caddr (cadr summary))) 
+        (/ (caaddr summary) (caddr (caddr summary)))))
+
+
+Problem 14
+
+A.
+
+;;history-tracker ideas: 
+; -need to take hist1's move, (the player I'm tracking), and sort that move into a list based on what the other two players did. Thus hist1 can either cooperate or defect in three different scenarios: ("c" "d"), ("c" "c"), or ("d" "d"). This list needs to cross over to the next round.
+
+;;In soft-eye-for-eye the player cooperates if either of the other players cooperate and defects if both of the other players defect. The dd-list and cd-list will be relevant.
+
+;;make-history-summary: car is cc-list, cadr is dd-list and caddr is cd-list
+
+(define (anti-soft-EYE-FOR-EYE hist0 hist1 hist2)
+
+(define (make-history-summary cc-list dd-list cd-list)
+  (define (CCList c d # lst)
+
+    (cond ((null? lst) (list c d #))
+          ((equal? (most-recent-play lst) "c") (CCList (+ 1 c) d (+ 1 #) (cdr lst)))
+          ((equal? (most-recent-play lst) "d") (CCList c (+ 1 d) (+ 1 #) (cdr lst)))))
+   
+  (define (DDList c d # lst)
+     (cond ((null? lst) (list c d #))
+           ((equal? (most-recent-play lst) "c") (DDList (+ 1 c) d (+ 1 #) (cdr lst)))
+           ((equal? (most-recent-play lst) "d") (DDList c (+ 1 d) (+ 1 #) (cdr lst)))))
+  
+    (define (CDList c d # lst)
+      (cond ((null? lst) (list c d #))
+            ((equal? (most-recent-play lst) "c") (CDList (+ 1 c) d (+ 1 #) (cdr lst)))
+            ((equal? (most-recent-play lst) "d") (CDList c (+ 1 d) (+ 1 #) (cdr lst)))))
+  
+ (list (CCList 0 0 0 cc-list) (DDList 0 0 0 dd-list) (CDList 0 0 0 cd-list)))
+
+  
+  (define (history-tracker hist0 hist1 hist2 cc-list dd-list cd-list)
+    (cond ((null? hist1) (make-history-summary cc-list dd-list cd-list))
+          ((and (equal? (most-recent-play hist0) "d") 
+                (equal? (most-recent-play hist2) "d")) 
+                  (history-tracker (cdr hist0) (cdr hist1) (cdr hist2) cc-list 
+                                   (cons (car hist1) dd-list) cd-list))
+          ((and (equal? (most-recent-play hist0) "d") 
+                (equal? (most-recent-play hist2) "c")) 
+                  (history-tracker (cdr hist0) (cdr hist1) (cdr hist2) cc-list 
+                                   dd-list (cons (car hist1) cd-list)))
+          ((and (equal? (most-recent-play hist0) "c") 
+                (equal? (most-recent-play hist2) "d"))
+                  (history-tracker (cdr hist0) (cdr hist1) (cdr hist2) cc-list 
+                                   dd-list (cons (car hist1) cd-list)))
+          ((and (equal? (most-recent-play hist0) "c") 
+                (equal? (most-recent-play hist2) "c"))
+                  (history-tracker (cdr hist0) (cdr hist1) (cdr hist2) (cons (car hist1) cc-list)
+                                   dd-list cd-list))))
+   
+  (cond ((null? hist1) "d")
+        ((and (equal? (car (caddr (history-tracker hist0 hist1 hist2 '() '() '())))
+                      (caddr (caddr (history-tracker hist0 hist1 hist2 '() '() '()))))
+              (equal? (car (cadr (history-tracker hist0 hist1 hist2 '() '() '())))
+                      (caddr (cadr (history-tracker hist0 hist1 hist2 '() '() '()))))) "c")
+         (else "d")))
+
+
+
+
+B.
+
+(define (dont-tolerate-fools hist0 hist1 hist2)
+
+  (define (get-probability-of-c summary) 
+  (list (/ (caar summary) (caddar summary)) 
+        (/ (caadr summary) (caddr (cadr summary))) 
+        (/ (caaddr summary) (caddr (caddr summary)))))
+
+  (define (test-entry expected-values actual-values) 
+   (cond ((null? expected-values) (null? actual-values)) 
+         ((null? actual-values) #f) 
+         ((or (not (car expected-values)) 
+              (not (car actual-values)) 
+             (= (car expected-values) (car actual-values))) 
+          (test-entry (cdr expected-values) (cdr actual-values))) 
+         (else #f))) 
+
+  (define (is-he-a-fool? hist0 hist1 hist2) 
+   (test-entry (list 1 1 1) 
+               (get-probability-of-c 
+                (make-history-summary hist0 hist1 hist2))))
+
+
+  (define (make-history-summary cc-list dd-list cd-list)
+    (define (CCList c d # lst)
+
+      (cond ((null? lst) (list c d #))
+          ((equal? (most-recent-play lst) "c") (CCList (+ 1 c) d (+ 1 #) (cdr lst)))
+          ((equal? (most-recent-play lst) "d") (CCList c (+ 1 d) (+ 1 #) (cdr lst)))))
+   
+    (define (DDList c d # lst)
+     (cond ((null? lst) (list c d #))
+           ((equal? (most-recent-play lst) "c") (DDList (+ 1 c) d (+ 1 #) (cdr lst)))
+           ((equal? (most-recent-play lst) "d") (DDList c (+ 1 d) (+ 1 #) (cdr lst)))))
+  
+      (define (CDList c d # lst)
+      (cond ((null? lst) (list c d #))
+            ((equal? (most-recent-play lst) "c") (CDList (+ 1 c) d (+ 1 #) (cdr lst)))
+            ((equal? (most-recent-play lst) "d") (CDList c (+ 1 d) (+ 1 #) (cdr lst)))))
+  
+   (list (CCList 0 0 0 cc-list) (DDList 0 0 0 dd-list) (CDList 0 0 0 cd-list)))
+
+(cond ((or (null? hist0)
+           (> 9 (length hist0))) "c")
+      ((is-he-a-fool? hist0 hist1 hist2) "d")))
