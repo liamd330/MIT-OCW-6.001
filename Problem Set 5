@@ -1,1 +1,115 @@
+;;Problem Set 5
 
+;;5.1.1 Part 1 Write a procedure (make-canonical-limited-precision val err) that uses make-range to construct and return an equivalent range expression.
+
+(define make-canonical-limited-precision 
+			  (lambda (val err)
+                          (make-range (- val err)(+ val err))))
+                          
+;;Part 2 Write a procedure (make-canonical-constant c) that uses make-range to construct and return an appropriate range expression. 
+
+(define make-canonical-constant (lambda (c)
+                          (make-range c c))) 
+
+;;Part 3 Write a procedure (output-value exp) that takes a range expression and returns
+
+    (constant c) if the upper and lower values of the range are both equal to c
+    (range lower upper) if *output-ranges-as-limited-precision* is false, and
+    (limited center err) if *output-ranges-as-limited-precision* is true. 
+    
+(define center (lambda (one two) (/ (+ one two) 2)))
+(define center-arg (lambda (exp) (center (range-min exp) (range-max exp))))
+
+(define output-value (lambda (exp) 
+    (if (range-exp? exp)(if (eq? (range-min exp) (range-max exp))(list 'constant (range-min exp))(if (eq? *output-ranges-as-limited-precision* #t) (list limited-tag (center-arg exp) (- (range-max exp) (center-arg exp))) exp))
+    'error)))
+
+;;5.1.2 Part 1 Define a procedure +rat that adds two rationals together. Be sure that the result returned is a rational. If the procedure is applied to numbers that are not both rational, it should return an error. 
+
+(define (+rat r1 r2) (make-rat (+ (* (cadr r1) (caddr r2)) (* (cadr r2) (caddr r1))) (* (caddr r1) (caddr r2))))
+
+;;Part 2 We have provided a Scheme procedure called gcd that computes greatest common divisors of two integers. Using this, implement a new version of rational addition -- call it +rat1 -- that returns values in their lowest form. 
+
+(define (+rat r1 r2) (make-rat (+ (* (cadr r1) (caddr r2)) (* (cadr r2) (caddr r1))) (* (caddr r1) (caddr r2))))
+
+(define (+rat1 r1 r2) (make-rat (/ (cadr (+rat r1 r2)) (gcd (cadr (+rat r1 r2)) (caddr (+rat r1 r2))))(/ (caddr (+rat r1 r2)) (gcd (cadr (+rat r1 r2)) (caddr (+rat r1 r2)))))
+
+;;Part 3 Write a procedure that will correctly add two numbers, if they are integers, rationals or combinations.
+
+(define (add n1 n2) 
+    (cond ((and (integer? n1) (integer? n2)) (list 'integer  (+ (cadr n1) (cadr n2))))
+          ((and (rat? n1) (rat? n2))(+rat1 n1 n2))
+          ((and (rat? n1) (integer? n2)) (+rat1 n1 (make-rat (car (reverse n2)) 1)))
+          ((and (integer? n1) (rat? n2)) (+rat1 (make-rat (car (reverse n1)) 1) n2))))
+          
+;;11.2.1 Part 2 (lecture exercise) Define a procedure (find-assoc-2 key alist) that returns #f when key is not present in alist, and returns the whole key-value entry when it is.
+
+(define find-assoc-2 (lambda (key alist)
+       (if (null? alist) #f (if (equal? (caar alist) key) (car alist) (find-assoc-2 key (cdr alist))))))
+       
+;;Part 3 Use find-assoc-2 to implement a procedure (lookup key alist) that returns a list of two values: if key is present in alist, then the first value in the list should be #t and the second value should be the value associated with key in alist; if key is not present, then the result should be (#f #f). 
+
+(define lookup (lambda (key alist) (let ((z (find-assoc-2 key alist))) (if (eq? z #f) '(#f #f) (list '#t (cadr z))))))
+
+;;5.2.2 Part 1 Implement the procedure (table3-get table key) of type table3<V>, number-> V. 
+
+(define table3-get (lambda (table key)
+            (cond ((not (table3? table)) 'error)
+                  ((not (integer? key)) 'error)
+                  ((> 0 key) 'error)
+                  ((< (vector-length (caddr table)) key) 'error)
+                  (else (vector-ref (caddr table) key)))))
+
+;;Part 2 
+
+(define table3-put! (lambda (table key value) 
+                    (cond ((> 0 key) 'error)
+                          ((> key (vector-length (caddr table))) 'error)
+                    (else (vector-set! (caddr table) key value)))))
+                    
+;;5.2.4 Part 8  Write remove-elt: given an element E and a list L in which E occurs at most once, return a list containing all elements in L except E. If E does not occur in L, return a list containing all elements in L.
+
+(define remove-elt (lambda (elt lst) (filter (lambda (x) (not (equal? x elt))) lst)))
+
+;;Part 9 Write map-and-flatten: this function can be useful when mapping a function whose type is X -> list<Y> over some list. This function appends the resulting sublists, returning list<Y>.
+
+(define map-and-flatten (lambda (fun lst) (helper (map fun lst)))) 
+(define helper (lambda (z) 
+             (cond ((null? z) nil)
+             ((not (pair? z)) (list z))
+             (else (append (helper (car z)) (helper (cdr z)))))))
+             
+;;Part 9 Complete the template for all-correspondences, with type list<X>, list<Y> -> list<list<match<X,Y>>>.
+
+(define all-correspondences
+  (lambda (l1 l2) 
+    (if (null? l1) nil
+        (map-and-flatten
+          (lambda (choice-from-l2)
+            (let ((initial-match (make-match (car l1) choice-from-l2))
+                  (correspondences-of-remaining-elts
+                    (all-correspondences (cdr l1) 
+                                         (remove-elt choice-from-l2 l2))))
+            (list (cons initial-match correspondences-of-remaining-elts))
+            ))
+          l2))))
+          
+;;Note: The -correspondences- in this code are correct but show up as incorrect on the MIT Scheme Helper because the number of parentheses given are different. 
+
+;;Part 10 Write the function filtered-correspondences which behaves just like all-correspondences except it takes a predicate as an extra argument.
+
+(define filtered-correspondences
+  (lambda (pred? l1 l2)
+    (if (null? l1) nil
+
+      (filter pred? (map-and-flatten
+          (lambda (choice-from-l2)
+            (let ((initial-match (make-match (car l1) choice-from-l2))
+                 (correspondences-of-remaining-elts
+                    (filtered-correspondences pred? (cdr l1) 
+                                         (remove-elt choice-from-l2 l2))))
+             (cons initial-match correspondences-of-remaining-elts)
+            ))
+          l2)))))
+          
+;;Note: Once again the amount of parentheses are wrong and the third test case is slightly different from the given answer.
