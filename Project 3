@@ -1,0 +1,377 @@
+;Edited and extra code:
+(define (search initial-state goal? successors merge graph) 
+ (define (search-inner still-to-do)
+    (if (null? still-to-do)
+	#f
+	(let ((current (car still-to-do)))
+	  (if *search-debug*
+	      (write (list 'now-at current)))
+	  (if (goal? current)
+	      #t
+	      (search-inner
+	       (merge (successors graph current) (cdr still-to-do)))))))
+  (search-inner (list initial-state)))
+  
+(define first car)
+(define second cadr)
+(define third caddr)
+
+(define contains? (lambda (lst elt)
+    (cond ((equal? lst nil) #f)
+          ((equal? (car lst) elt) #t)
+          ((< 1 (length lst))(contains? (cdr lst) elt))
+          (else #f))))
+
+
+
+(define subset? (lambda (lst1 lst2) (if (null? lst1) #t (if (< 1 (length lst1)) (if (contains? lst2 (car lst1)) (subset? (cdr lst1) lst2)(contains? lst2 (car lst1)))(contains? lst2 (car lst1))))))
+(define flatten (lambda (z) 
+             (cond ((null? z) nil)
+             ((not (pair? z)) (list z))
+             (else (append (flatten (car z)) (flatten (cdr z)))))))
+(define last-cons (lambda (l) (if (equal? (cdr l) '()) l (last-cons (cdr l)))))
+(define nconc! (lambda (l1 l2)
+    (set-cdr! (last-cons l1) l2)
+    l1))
+(define remove-duplicates (lambda (lst) (if (null? lst) nil (if (contains? (cdr lst) (car lst)) (remove-duplicates (cdr lst)) (cons (car lst) (remove-duplicates (cdr lst)))))))
+(define nil '())
+
+  (define (find-in-index index key)       ; Index,Key -> list<Val>
+  (let ((index-entry (find-entry-in-index index key)))
+    (if (not (null? index-entry))
+        (cdr index-entry)
+        '())))
+
+(define (randint . args)
+  (cond ((= (length args) 1)
+          (floor (* (random) (car args))))
+        ((= (length args) 2)
+          (+ (car args) (floor (* (random) (- (cadr args) (car args))))))
+        (else (error 'randint "usage: (randint [lo] hi)"))))
+
+(define random
+  (let ((a 69069) (c 1) (m (expt 2 32)) (seed 19380110))
+    (lambda new-seed
+      (if (pair? new-seed)
+          (set! seed (car new-seed))
+          (set! seed (modulo (+ (* seed a) c) m)))
+      (/ seed m))))
+
+
+(define (split ls)
+  (letrec ([split-h (lambda (ls ls1 ls2)
+                      (cond
+                        [(or (null? ls) (null? (cdr ls)))
+                         (cons (reverse ls2) ls1)]
+                        [else (split-h (cddr ls)
+                                (cdr ls1) (cons (car ls1) ls2))]))])
+    (split-h ls ls '())))
+    
+(define (merge pred ls1 ls2)
+  (cond
+    [(null? ls1) ls2]
+    [(null? ls2) ls1]
+    [(pred (car ls1) (car ls2))
+     (cons (car ls1) (merge pred (cdr ls1) ls2))]
+    [else (cons (car ls2) (merge pred ls1 (cdr ls2)))]))
+
+(define (sort pred ls)
+  (cond
+    [(null? ls) ls]
+    [(null? (cdr ls)) ls]
+    [else (let ([splits (split ls)])
+            (merge pred
+              (sort pred (car splits))
+              (sort pred (cdr splits))))]))
+
+;Computer Exercise 1:
+(define (BFS-simple start goal? graph)
+  (search start
+	  goal?
+	  find-node-children
+	  (lambda (new old) (append old new))
+	  graph))
+;The procedure search merges lists and submits them as the parameter of search-inner. Switching the order in which merge appends this parameter switches the order in which they are evaluated, giving a breadth-first search. 
+
+;Computer Exercise 2:
+; Filter merge with lambda
+(define (search-with-cycles initial-state goal? successors merge graph)
+
+  (define (search-inner still-to-do already-done)
+  (if (subset? still-to-do already-done) #f
+    (if (null? still-to-do) #f
+	(let ((current (car still-to-do)))
+	  (if *search-debug*
+	      (write (list 'now-at current)))
+	  (if (goal? current)  #t
+	      (search-inner
+	          (merge (filter (lambda (a) (not (contains? already-done a))) (successors graph current)) (cdr still-to-do)) (cons current already-done)))))))
+	          
+  (search-inner (list initial-state)(list)))
+	          
+ (define (DFS start goal? graph)
+  (search-with-cycles start
+	  goal?
+	  find-node-children
+	  (lambda (new old) (append new old))
+	  graph))
+
+(define (BFS start goal? graph)
+  (search-with-cycles start
+	  goal?
+	  find-node-children
+	  (lambda (new old) (append old new))
+	  graph))
+
+;Depth-first search on the-web:
+(DFS a (lambda (node) (eq? node 'haha)) the-web)
+(now-at http://sicp.csail.mit.edu/)
+(now-at http://sicp.csail.mit.edu/SchemeImplementations)
+(now-at http://sicp.csail.mit.edu/getting-help.html)
+(now-at http://sicp.csail.mit.edu/lab-use.html)
+(now-at *the-goal*)
+(now-at http://sicp.csail.mit.edu/psets)
+=> #f
+
+;Breadth-first search on the-web: 
+ (BFS a (lambda (node) (eq? node 'haha)) the-web)
+(now-at http://sicp.csail.mit.edu/)
+(now-at http://sicp.csail.mit.edu/SchemeImplementations)
+(now-at http://sicp.csail.mit.edu/psets)
+(now-at http://sicp.csail.mit.edu/getting-help.html)
+(now-at http://sicp.csail.mit.edu/lab-use.html)
+(now-at *the-goal*)
+=> #f
+
+
+
+
+;Problem 3
+(define (add-to-index! index key value) ; Index,Key,Val -> Index
+  (let ((index-entry (find-entry-in-index index key)))
+    (if (null? index-entry)
+	(nconc! index (list (list key value)))
+	(nconc! (find-entry-in-index index key) (list value))
+	))
+    index)
+
+   (define test-index (make-index))
+   test-index
+=> (index)
+   (add-to-index! test-index 'key1 'value1)
+=> (index (key1 value1))
+   (add-to-index! test-index 'key2 'value2)
+=> (index (key1 value1) (key2 value2))
+   (add-to-index! test-index 'key1 'another-value1)
+=> (index (key1 value1 another-value1) (key2 value2))
+   test-index
+=> (index (key1 value1 another-value1) (key2 value2))
+
+
+;Problem 4
+
+(define (add-document-to-index! index web url) 
+   (remove-duplicates (map (lambda (a) (add-to-index! index a url)) (flatten (find-node-contents web url))))) 
+
+
+   (add-document-to-index! h the-web 'http://sicp.csail.mit.edu/)
+
+=> ((index (18:30:02 http://sicp.csail.mit.edu/) (2004 http://sicp.csail.mit.edu/) (6001-WEBMASTER@CSAIL.MIT.EDU http://sicp.csail.mit.edu/) (8 http://sicp.csail.mit.edu/) (ABOUT http://sicp.csail.mit.edu/) (ALL http://sicp.csail.mit.edu/) (AM http://sicp.csail.mit.edu/) (AND http://sicp.csail.mit.edu/) (ANNOUNCEMENTS http://sicp.csail.mit.edu/) (ANSWERS http://sicp.csail.mit.edu/) (ARE http://sicp.csail.mit.edu/) (ASSIGNMENT http://sicp.csail.mit.edu/) (ASSIGNMENTS http://sicp.csail.mit.edu/) (BY http://sicp.csail.mit.edu/) (CALENDAR http://sicp.csail.mit.edu/) (CAN http://sicp.csail.mit.edu/) (CHANGE http://sicp.csail.mit.edu/) (COLLABORATIVE http://sicp.csail.mit.edu/) (COMMENTS http://sicp.csail.mit.edu/) (COMPUTER http://sicp.csail.mit.edu/) (COPYRIGHT http://sicp.csail.mit.edu/) (CURRENT http://sicp.csail.mit.edu/) (DO http://sicp.csail.mit.edu/) (DOCUMENTATION http://sicp.csail.mit.edu/) (EDT http://sicp.csail.mit.edu/) (FALL http://sicp.csail.mit.edu/) (FIND http://sicp.csail.mit.edu/) (FOR http://sicp.csail.mit.edu/) (GENERAL http://sicp.csail.mit.edu/) (GET http://sicp.csail.mit.edu/) (GETTING http://sicp.csail.mit.edu/) (GUIDELINES http://sicp.csail.mit.edu/) (HELP http://sicp.csail.mit.edu/) (HOW http://sicp.csail.mit.edu/) (I http://sicp.csail.mit.edu/) (IN http://sicp.csail.mit.edu/) (INDIVIDUAL http://sicp.csail.mit.edu/) (INFORMATION http://sicp.csail.mit.edu/) (INSTITUTE http://sicp.csail.mit.edu/) (INTERPRETATION http://sicp.csail.mit.edu/) (IS http://sicp.csail.mit.edu/) (LAST http://sicp.csail.mit.edu/) (LECTURE http://sicp.csail.mit.edu/) (MASSACHUSETTS http://sicp.csail.mit.edu/) (ME http://sicp.csail.mit.edu/) (MICROQUIZZES http://sicp.csail.mit.edu/) (MODIFIED http://sicp.csail.mit.edu/) (MY http://sicp.csail.mit.edu/) (NEW http://sicp.csail.mit.edu/) (NOTES http://sicp.csail.mit.edu/) (OCT http://sicp.csail.mit.edu/) (OF http://sicp.csail.mit.edu/) (ON http://sicp.csail.mit.edu/) (ON-LINE http://sicp.csail.mit.edu/) (ORAL http://sicp.csail.mit.edu/) (OWN http://sicp.csail.mit.edu/) (PAST http://sicp.csail.mit.edu/) (POLICY http://sicp.csail.mit.edu/) (POSTED http://sicp.csail.mit.edu/) (PRESENTATIONS http://sicp.csail.mit.edu/) (PREVIOUS http://sicp.csail.mit.edu/) (PROBLEM http://sicp.csail.mit.edu/) (PROGRAMS http://sicp.csail.mit.edu/) (RECITATION http://sicp.csail.mit.edu/) (RECITATIONS http://sicp.csail.mit.edu/) (RECORDS http://sicp.csail.mit.edu/) (RESERVED http://sicp.csail.mit.edu/) (RIGHTS http://sicp.csail.mit.edu/) (SCHEME http://sicp.csail.mit.edu/) (SECTION http://sicp.csail.mit.edu/) (SECTIONS http://sicp.csail.mit.edu/) (SEND http://sicp.csail.mit.edu/) (SET http://sicp.csail.mit.edu/) (SETS http://sicp.csail.mit.edu/) (SITE http://sicp.csail.mit.edu/) (SOFTWARE http://sicp.csail.mit.edu/) (STAFF http://sicp.csail.mit.edu/) (STRUCTURE http://sicp.csail.mit.edu/) (SUBJECT http://sicp.csail.mit.edu/) (TECHNOLOGY http://sicp.csail.mit.edu/) (TELL http://sicp.csail.mit.edu/) (TERMS http://sicp.csail.mit.edu/) (THE http://sicp.csail.mit.edu/) (THIS http://sicp.csail.mit.edu/) (THU http://sicp.csail.mit.edu/) (TO http://sicp.csail.mit.edu/) (UP http://sicp.csail.mit.edu/) (USE http://sicp.csail.mit.edu/) (WEEK http://sicp.csail.mit.edu/) (WHAT http://sicp.csail.mit.edu/) (WHERE http://sicp.csail.mit.edu/) (WHICH http://sicp.csail.mit.edu/) (WORK http://sicp.csail.mit.edu/) (WRITING http://sicp.csail.mit.edu/)))
+
+   (find-in-index h 'WRITING)
+=> http://sicp.csail.mit.edu/
+   (find-in-index h 'HAHA)
+=> ()
+
+;Problem 5
+
+(define (search-with-children initial-state goal? successors merge graph)
+  (define (search-inner contents still-to-do already-done)
+  (if (subset? still-to-do already-done) contents
+    (if (null? still-to-do) contents
+	(let ((current (car still-to-do)))
+	  (if (goal? current)  contents
+	      (search-inner (append contents (find-node-children graph current))
+	          (merge (filter (lambda (a) (not (contains? already-done a))) (successors graph current)) (cdr still-to-do)) (cons current already-done)))))))	          
+  (search-inner (list)(list initial-state)(list)))
+
+(define (BFS-children start goal? graph)
+  (search-with-children start
+	  goal?
+	  find-node-children
+	  (lambda (new old) (append old new))
+	  graph))
+
+(define (make-web-index web url) (lambda (key) 
+          (define idx (make-index))
+          (define idx-maker (lambda (web url)
+         (remove-duplicates (map (lambda (a) (add-document-to-index! idx web a)) (cdr (BFS-children url (lambda (node) (eq? node 'sn0rlax)) web))))))
+           (idx-maker web url)
+           (find-in-index idx key)))
+
+;Generic index-maker code: 
+
+(define (test index web url) (remove-duplicates (map (lambda (a) (add-document-to-index! index web a)) (cdr (BFS-children url (lambda (node) (eq? node 'sn0rlax)) web)))))
+;Code works; have index!!! 
+
+
+  (define r (make-web-index the-web 'http://sicp.csail.mit.edu/))
+
+(r 'COLLABORATIVE)
+=> (http://sicp.csail.mit.edu/psets http://sicp.csail.mit.edu/)
+;Problem 6
+
+(define (search-with-contents initial-state goal? successors merge graph)
+  (define (search-inner contents still-to-do already-done)
+  (if (subset? still-to-do already-done) 'Not-there!
+    (if (null? still-to-do) 'Not-there!
+(let ((current (car still-to-do))) 
+  (if (goal? (find-node-contents graph current))  current
+      (search-inner (append contents (find-node-contents graph current)) 
+          (merge (filter (lambda (a) (not (contains? already-done a))) (successors graph 
+current)) (cdr still-to-do)) (cons current already-done)))))))           
+  (search-inner (list)(list initial-state)(list)))
+  
+(define (BFS-contents start goal? graph)
+  (search-with-contents start 
+  goal? 
+  find-node-children 
+  (lambda (new old) (append old new)) 
+  graph))
+  
+(define (search-any web start-node word) 
+   (BFS-contents start-node (lambda (a) (contains? a word)) web))
+
+(search-any the-web 'http://sicp.csail.mit.edu/ 'COLLABORATIVE)
+=> http://sicp.csail.mit.edu/
+
+
+
+
+
+(define (full-search-with-contents initial-state goal? successors merge graph)
+  (define (search-inner contents still-to-do already-done)
+  (if (subset? still-to-do already-done) contents
+    (if (null? still-to-do) contents
+(let ((current (car still-to-do))) 
+  (if (goal? (find-node-contents graph current))
+      (search-inner (append contents (list current)) 
+          (merge (filter (lambda (a) (not (contains? already-done a))) (successors graph 
+current)) (cdr still-to-do)) (cons current already-done))
+    (search-inner contents 
+          (merge (filter (lambda (a) (not (contains? already-done a))) (successors graph 
+current)) (cdr still-to-do)) (cons current already-done)))))))
+  (search-inner (list)(list initial-state)(list)))
+  
+
+(define (full-BFS-contents start goal? graph)
+  (full-search-with-contents start 
+  goal? 
+  find-node-children 
+  (lambda (new old) (append old new)) 
+  graph))
+
+(define (search-all web start-node word) 
+  (full-BFS-contents start-node (lambda (a) (contains? a word)) web))
+
+   (search-all the-web 'http://sicp.csail.mit.edu/ 'COLLABORATIVE)
+=> (http://sicp.csail.mit.edu/ http://sicp.csail.mit.edu/psets)
+
+
+
+
+
+;Problem 7
+;Time function doesn’t work on repl.it
+   (search-any the-web 'http://sicp.csail.mit.edu/ 'HELP)
+=> http://sicp.csail.mit.edu/
+
+;Instantaneous
+
+   (search-any the-web 'http://sicp.csail.mit.edu/ 'AKJS)
+=> Not-there!
+
+;Almost instantaneous. One computer ‘hesitation’ (I wish time worked).
+   (search-all the-web 'http://sicp.csail.mit.edu/ 'HELP)
+=> (http://sicp.csail.mit.edu/ http://sicp.csail.mit.edu/SchemeImplementations http://sicp.csail.mit.edu/psets http://sicp.csail.mit.edu/getting-help.html)
+
+;Instantaneous. 0.612 seconds on online stopwatch.
+
+  (make-web-index idx the-web 'http://sicp.csail.mit.edu/)
+;2 minutes 49 seconds. Not putting whole index here.
+
+   (find-in-index idx 'HELP)
+=> http://sicp.csail.mit.edu/psets
+;Instantaneous.
+
+;3 minutes 26 seconds to do make-web-index and search. May have gone a few seconds over but still a long time.
+
+   (find-in-index idx 'SUSANHOCKFIELD)
+=> ()
+;Instantaneous
+
+
+;Making an index takes forever. Searching all is not so bad and seems to return a decent amount of information. Making the index and searching takes forever. Searching in general is not so bad. I would not want to make an index and search at the same time if going for efficiency.
+
+;Problem 8
+(define (optimize-index idx)
+    (define (index-symbol-sort index) (map string->symbol (sort string<? (map symbol->string (map car (cdr index  ))))))
+    (define finder (lambda (a) (find-in-index idx a)))
+    (list->vector (map cons (index-symbol-sort idx) (map finder (index-symbol-sort idx)))))
+
+
+
+
+
+;Problem 9
+(define (find-entry-in-optimized-index optind key) 
+  (define half (round (/ (vector-length optind) 2)))
+  (define ref (vector-ref optind half))
+  (define get-n-items
+    (lambda (lst num)
+        (if (> num 0)
+            (cons (car lst) (get-n-items (cdr lst) (- num 1)))
+            '())))
+(define slice
+    (lambda (lst start count)
+        (if (> start 1)
+            (slice (cdr lst) (- start 1) count)
+            (get-n-items lst count))))  
+(define (slicer lst start count)
+  (list->vector (slice (vector->list lst) start count)))
+  (if (number? key)
+    (if (number? (car ref))
+          (cond ((eq? (number->string key) (number->string (car ref))) ref)
+            ((eq? (number->string key) (number->string (car (vector-ref optind 0)))) (vector-ref optind 0))
+            ((= (vector-length optind) 2) 'not-there)
+            ((string>? (number->string key) (number->string (car ref)))
+            (find-entry-in-optimized-index (slicer optind half (- (vector-length optind) (- half 1))) key))
+            ((string<? (number->string key) (number->string (car ref)))
+            (find-entry-in-optimized-index (slicer optind 0 half) key)))
+          (cond ((eq? (number->string key) (number->string (car ref))) ref)
+            ((= (vector-length optind) 2) 'not-there)
+            ((string>? (number->string key) (symbol->string (car ref)))
+            (find-entry-in-optimized-index (slicer optind half (- (vector-length optind) (- half 1))) key))
+            ((string<? (number->string key) (symbol->string (car ref)))
+            (find-entry-in-optimized-index (slicer optind 0 half) key))))
+  (cond ((eq? key (car ref)) ref)
+        ((= (vector-length optind) 2) 'not-there)
+        ((string>? (symbol->string key) (symbol->string (car ref)))
+          (find-entry-in-optimized-index (slicer optind half (- (vector-length optind) (- half 1))) key))
+        ((string<? (symbol->string key) (symbol->string (car ref)))
+          (find-entry-in-optimized-index (slicer optind 0 half) key)))))
+
+   (find-entry-in-optimized-index r '1)
+=> (1 http://sicp.csail.mit.edu/psets http://sicp.csail.mit.edu/getting-help.html http://sicp.csail.mit.edu/lab-use.html)
+
+   (find-entry-in-optimized-index r 'YOURSELF)
+=> (YOURSELF http://sicp.csail.mit.edu/lab-use.html)
+
+   (find-entry-in-optimized-index r 'COLLABORATIVE)
+=> (COLLABORATIVE http://sicp.csail.mit.edu/psets http://sicp.csail.mit.edu/)
+
+   (find-entry-in-optimized-index r 'DATA)
+=> not-there
+
+
+;Don’t have proper timing equipment for this code with repl.it.
