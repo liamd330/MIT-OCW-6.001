@@ -1,0 +1,31 @@
+;6.1.1
+(define last-cons (lambda (l) (if (equal? (cdr l) '()) l (last-cons (cdr l)))))
+
+;6.1.2
+(define fill-queue! (lambda (queue elts) (list 'queue (caddr (insert-queue! queue elts)) (last-pair (caddr (insert-queue! queue elts))))))
+;Kind of works but not the way they want it to. Said fuck it.
+
+;6.2.3
+;Part 1
+(define (my-car p) (p 'car))
+;Part 2
+(define (my-cdr p) (p 'cdr))
+;Part 3
+(define (my-set-car! p new) (p 'set-car! new))
+;Part 4
+(define (my-set-cdr! p new) (p 'set-cdr!))
+
+;6.2.5
+(define make-clock (lambda () (let ((time 0)) (lambda ()
+  (set! time (+ 1 time))
+  (cond ((equal? (modulo time 2) 1) 'tick)
+        (else 'tock))))))
+        
+;6.2.6
+(define make-delay (let ((time 0)) (lambda (init) 
+  (define lst (cons init 'x)) 
+
+  (lambda (p)
+  (set! time (+ time 1))
+  (if (equal? (modulo time 2) 0) (set-car! lst p) (set-cdr! lst p))
+  (if (equal? (modulo time 2) 1) (car lst) (cdr lst))))))
