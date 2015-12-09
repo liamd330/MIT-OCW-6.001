@@ -1,0 +1,63 @@
+;;Problem Set 8
+
+;;8.2.1
+
+(define eval-less (lambda (exp) (< (eval (cadr exp)) (eval (caddr exp)))))
+
+;;8.2.2
+
+(define eval-cond (lambda (exp) 
+  (if (null? (cdr exp)) #f 
+  (if (not (boolean? (eval (caadr exp)))) 'error
+  (if (eq? (eval (caadr exp)) #t) (eval (cadr (cadr exp)))(eval-cond (cdr exp)))))))
+  
+;;8.2.3
+  
+(define eval-and (lambda (exp) 
+  (cond ((null? (cdr exp)) #t) 
+        ((not (boolean? (eval (cadr exp)))) 'error)
+        ((eq? #f (eval (cadr exp)))#f)
+    (else (eval-and (cdr exp))))))
+    
+;;8.2.4
+
+(define eval-or (lambda (exp)  
+  (cond ((null? (cdr exp)) #f) 
+        ((not (boolean? (eval (cadr exp)))) 'error)
+        ((eq? #t (eval (cadr exp)))#t)
+    (else (eval-or (cdr exp))))))
+    
+;;18.2.1
+
+(define eval-let (lambda (exp env)
+
+    (define (variables exp) (map car (cadr exp)))
+    (define (values exp) (map cadr (cadr exp)))
+    (define (let-body exp) (begin (cddr exp)))
+   
+(eval  (eval (car (cddr exp))(extend-env-with-new-frame (variables exp) (values exp) env))(extend-env-with-new-frame (variables exp) (values exp) env)) ))
+
+;;8.3.1
+
+(define cond->if (lambda (exp) 
+
+      (define helper (lambda (exp) (let ((clauses (cdr exp))) 
+      
+       (if (null? (cdr clauses))
+        (make-if (caar clauses) (cadar clauses) #f)
+        (make-if (caar clauses) (cadar clauses) (helper clauses))
+        ))))
+(if (null? (cdr exp)) #f (helper exp))))
+
+;;8.3.3
+
+(define eval-until (lambda (exp env) 
+ 
+
+  (if (eq? (eval (until-test exp) env) #t) #t
+
+  (if (< 1 (length (until-body exp))) 
+
+         (begin (eval (car (until-body exp)) env) (eval (cadr (until-body exp)) env) (eval-until exp env))
+
+(begin (eval (car (until-body exp)) env) (eval-until exp env))))))
