@@ -1,0 +1,80 @@
+;;Problem Set 9
+
+;;9.2.1
+
+(define interleave (lambda (s1 s2) 
+  (cons-stream (stream-car s1)  (interleave s2 (stream-cdr s1)))))
+  
+;;9.2.2
+
+(define map-stream (lambda (p s) 
+  (cons-stream (p (stream-car s)) (map-stream p (stream-cdr s)))))
+  
+;;9.2.3
+
+(define filter-stream (lambda (p s) 
+  (if (p (stream-car s)) 
+    (cons-stream (stream-car s) (filter-stream p (stream-cdr s)))
+    (filter-stream p (stream-cdr s)))))
+    
+;;9.2.4
+
+(define fibs (lambda () 
+
+(define (fibgen a b) (cons-stream a (fibgen b (+ a b))))
+(fibgen 1 1)))
+
+;write fibonacci sequence, put it in map2-stream, and structure it recursively
+
+;;9.2.5
+
+(define exponent (lambda (x)
+  (define power-series  (map2-stream / (powers x)   (cons-stream 1 the-facts)))
+ 
+(cons-stream (stream-car power-series) (map2-stream + (exponent x) (stream-cdr power-series)))))
+   
+
+;make stream with first power series, then add second power series to that, third power series to that, etc.
+
+;;9.2.6
+
+;;Part 1
+
+(define gradient  (lambda (str) 
+
+(define stream (cons-stream (stream-car str) (gradient (stream-cdr str))))
+
+(map2-stream - str (stream-cdr str))))
+
+;;Part 2
+
+(define threshold  (lambda (str thresh) 
+  (if (< thresh (abs (stream-car str))) (cons-stream 1 (threshold (stream-cdr str) thresh)) (cons-stream 0 (threshold (stream-cdr str) thresh)))
+)) 
+
+;;Part 3
+
+(define iteration 0)
+(define edges  (lambda (str thresh) 
+
+  ;;str is stream, thresh is threshold
+  
+  (define threshold-function (threshold (gradient str) thresh))
+  
+  ;;Returns 1's and 0's
+
+
+        
+        (if (eq? (stream-car threshold-function) 1)
+
+        (begin (set! iteration (+ iteration 1))
+    
+(cons-stream (list (abs (stream-car (gradient str))) (- iteration thresh)) (edges (stream-cdr str) thresh)))
+           
+(begin (set! iteration (+ iteration 1))
+           (edges (stream-cdr str) thresh)))
+
+
+        
+))
+
