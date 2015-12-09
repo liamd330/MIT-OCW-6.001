@@ -1,0 +1,87 @@
+;;Problem Set 7
+
+;;7.2.2
+
+;;Part 1
+
+(define (create-counter)
+  (create-instance make-counter))
+
+(define (make-counter self)
+  (let ((root (make-root-object self))
+        (count 0))
+    (lambda (msg)
+      (case msg
+        ((type)  (lambda () (type-extend 'counter root)))
+        ((STATE) (lambda () count))
+        ((COUNT) (lambda () (set! count (+ 1 count))))
+	(else (get-method msg root))))))
+	
+;;Part 2
+
+(define (create-counter)
+  (create-instance make-counter))
+
+(define (make-counter self)
+  (let ((root (make-root-object self))
+        (count 0))
+    (lambda (msg)
+      (case msg
+        ((type)  (lambda () (type-extend 'counter root)))
+        ((STATE) (lambda () count))
+        ((COUNT) (lambda () (set! count (+ 1 count))))
+        ((RESET) (lambda () (set! count 0)))
+	(else (get-method msg root))))))
+	
+	;;Part 3
+	
+	(define (create-counter)
+  (create-instance make-counter))
+
+(define (make-counter self)
+  (let ((root (make-root-object self))
+        (count 0)
+        (reset-count 0))
+    (lambda (msg)
+      (case msg
+        ((type)  (lambda () (type-extend 'counter root)))
+        ((STATE) (lambda () count))
+        ((COUNT) (lambda () (set! count (+ 1 count))))
+        ((RESET) (lambda () (set! count 0) (set! reset-count (+ 1 reset-count))))
+        ((TIMES-RESET) (lambda () reset-count))
+	(else (get-method msg root))))))
+	
+	;;7.2.3
+	
+	;;Part 2
+	
+	(define (create-checking name init savings) 
+  (create-instance make-checking name init savings))
+
+(define (make-checking self name init savings)
+  (let ((account (make-account self name init)))
+    (lambda (message)
+      (case message
+        ((TYPE) (lambda () (type-extend 'checking account)))
+        ((TRANSFER) (lambda (amount)
+                    (+ (ask savings 'balance) amount)))
+	((WITHDRAW) (lambda (amount)
+		      (cond ((> amount (ask self 'balance)) 
+                             (ask savings 'withdraw (- amount init))(set! init 0))
+			  (else (ask account 'withdraw amount)))))
+	(else (get-method message account))))))
+	
+	;;Part 3
+	
+	(define (make-checking self name init savings)
+  (let ((account (make-account self name init)))
+    (lambda (message)
+      (case message
+        ((TYPE) (lambda () (type-extend 'checking account)))
+        ((TRANSFER) (lambda (amount)
+                    (ask self 'withdraw amount) (ask savings 'deposit amount)))
+	((WITHDRAW) (lambda (amount)
+		      (cond ((> amount (ask self 'balance)) 
+                             (ask savings 'withdraw (- amount init))(set! init 0))
+			  (else (ask account 'withdraw amount)))))
+	(else (get-method message account))))))
